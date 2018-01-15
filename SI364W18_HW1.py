@@ -5,13 +5,15 @@
 #################################
 
 ## List below here, in a comment/comments, the people you worked with on this assignment AND any resources you used to find code (50 point deduction for not doing so). If none, write "None".
-
-
+#Resources: https://stackoverflow.com/questions/16965396/how-i-check-in-flask-that-fielf-from-form-was-filled-by-user
+#Worked with: Will Chatterson
 
 ## [PROBLEM 1] - 150 points
 ## Below is code for one of the simplest possible Flask applications. Edit the code so that once you run this application locally and go to the URL 'http://localhost:5000/class', you see a page that says "Welcome to SI 364!"
 
-from flask import Flask
+from flask import Flask, request
+import requests
+import json
 app = Flask(__name__)
 app.debug = True
 
@@ -19,6 +21,81 @@ app.debug = True
 def hello_to_you():
     return 'Hello!'
 
+@app.route('/class')
+def si_class():
+    return 'Welcome to SI 364!'
+
+@app.route('/movie/<movie_name>')
+def movie_page(movie_name):
+    baseurl = "https://itunes.apple.com/search?term={}&entity=movie"
+    r = requests.get(url = baseurl.format(movie_name))
+    return r.text
+
+@app.route('/question')
+def question():
+    s = """<!DOCTYPE html>
+    <html>
+    <body>
+    <form action="/result" method="POST">
+        <p> Enter your favorite number </p>
+        <input type="text" name="num">
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+    </body>
+    </html>
+    """
+
+    return s
+
+@app.route('/result', methods = ['POST','GET'])
+def displayData():
+    if request.method == 'POST':
+        n = request.form['num']
+    return "Double your favorite number is: {}".format(int(n) * 2)
+
+@app.route('/problem4form', methods = ['GET','POST'])
+def problem4():
+    s = """<!DOCTYPE html>
+    <html>
+    <body>
+    <form action="/problem4form" method="POST">
+        <p> Enter a musical artist</p>
+        <input type="text" name="artist"> <br>
+        <p> Check one: </p>
+        <input type="radio" name="field_type" value="songs"> Return songs<br>
+        <input type="radio" name="field_type" value="albums"> Return albums<br>
+
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+    </body>
+    </html>
+    """
+    if request.method == 'POST':
+        baseurl = "https://itunes.apple.com/search?"
+        artist = request.form['artist']
+
+        value = request.form.get('value', None)
+        if request.form.get('field_type') == "songs":
+            param = {'term':artist, 'entity': 'musicTrack'}
+            r = requests.get(url=baseurl, params = param).json()
+            songs = ""
+            print(r)
+            for x in r['results'][:5]:
+                songs += x['trackName'] + " - "
+
+            return songs
+        else:
+            param = {'term':artist, 'entity': 'album'}
+            r = requests.get(url=baseurl, params = param).json()
+            albums = ""
+            for x in r['results'][:5]:
+                albums += x['collectionName'] + " - "
+
+            return albums
+    else:
+        return s
 
 if __name__ == '__main__':
     app.run()
