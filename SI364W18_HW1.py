@@ -31,7 +31,7 @@ def movie_page(movie_name):
     r = requests.get(url = baseurl.format(movie_name))
     return r.text
 
-@app.route('/question')
+@app.route('/question', methods=['GET','POST'])
 def question():
     s = """<!DOCTYPE html>
     <html>
@@ -45,10 +45,9 @@ def question():
     </body>
     </html>
     """
-
     return s
 
-@app.route('/result', methods = ['POST','GET'])
+@app.route('/result',methods=['GET','POST'])
 def displayData():
     if request.method == 'POST':
         n = request.form['num']
@@ -85,7 +84,7 @@ def problem4():
             for x in r['results'][:5]:
                 songs += x['trackName'] + " - "
 
-            return songs
+            return request.form['artist'] + " songs: \n" + songs + s
         else:
             param = {'term':artist, 'entity': 'album'}
             r = requests.get(url=baseurl, params = param).json()
@@ -93,7 +92,7 @@ def problem4():
             for x in r['results'][:5]:
                 albums += x['collectionName'] + " - "
 
-            return albums
+            return request.form['artist'] + " albums: \n" + albums + s
     else:
         return s
 
